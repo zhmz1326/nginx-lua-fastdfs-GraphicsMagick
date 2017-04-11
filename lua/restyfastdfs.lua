@@ -40,6 +40,11 @@ function set_tracker(self, host, port)
     self.tracker = tracker
 end
 
+function set_tracker2(self, host, port)
+    local tracker2 = {host = host, port = port}
+    self.tracker2 = tracker2
+end
+
 function set_timeout(self, timeout)
     if timeout then
         self.timeout = timeout
@@ -139,6 +144,7 @@ end
 
 function query_upload_storage(self, group_name)
     local tracker = self.tracker
+	local tracker2 = self.tracker2
     if not tracker then
         return nil
     end
@@ -172,9 +178,13 @@ function query_upload_storage(self, group_name)
     end
     -- connect tracker
     local ok, err = sock:connect(tracker.host, tracker.port)
-    if not ok then
-        return nil, err
+	if not ok then
+       ok, err = sock:connect(tracker2.host, tracker2.port)
+	   if not ok then
+           return nil, err
+	   end
     end
+    
     -- send request
     local bytes, err = sock:send(out)
     -- read request header
@@ -369,6 +379,7 @@ function query_update_storage_ex(self, group_name, file_name)
     table.insert(out, file_name)
     -- get tracker
     local tracker = self.tracker
+	local tracker2 = self.tracker2
     if not tracker then
         return nil
     end
@@ -383,7 +394,10 @@ function query_update_storage_ex(self, group_name, file_name)
     -- connect tracker
     local ok, err = sock:connect(tracker.host, tracker.port)
     if not ok then
-        return nil, err
+       ok, err = sock:connect(tracker2.host, tracker2.port)
+	   if not ok then
+           return nil, err
+	   end
     end
     -- send request
     local bytes, err = sock:send(out)
@@ -460,6 +474,9 @@ function query_download_storage(self, fileid)
         local group_name = fileid:sub(1, pos-1)
         local file_name  = fileid:sub(pos + 1)
         local res = self:query_download_storage_ex(group_name, file_name)
+		if not res then 
+			return nil
+		end
         res.file_name = file_name
         return res
     end
@@ -479,6 +496,7 @@ function query_download_storage_ex(self, group_name, file_name)
     table.insert(out, file_name)
     -- get tracker
     local tracker = self.tracker
+	local tracker2 = self.tracker2
     if not tracker then
         return nil
     end
@@ -493,7 +511,10 @@ function query_download_storage_ex(self, group_name, file_name)
     -- connect tracker
     local ok, err = sock:connect(tracker.host, tracker.port)
     if not ok then
-        return nil, err
+       local ok, err = sock:connect(tracker2.host, tracker2.port)
+       if not ok then
+           return nil, err
+       end
     end
     -- send request
     local bytes, err = sock:send(out)
