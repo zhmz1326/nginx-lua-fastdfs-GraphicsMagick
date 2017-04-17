@@ -26,7 +26,7 @@ local file_exists = function(name)
     if f~=nil then io.close(f) return true else return false end
 end
 
-function downloadFromTracker(fileid)
+function downloadFromTracker(fileid, originalFile)
 	local fastdfs = require('restyfastdfs')
     local fdfs = fastdfs:new()
     fdfs:set_tracker("192.168.1.1", 22122)
@@ -80,7 +80,7 @@ if not file_exists(originalFile) then
 	end
 
 	-- main
-	if downloadFromTracker(fileid) then
+	if downloadFromTracker(fileid, originalFile) then
 		ngx.log(ngx.DEBUG, "download success from tracker server:", fileid)
 	else 
 		ngx.log(ngx.ERR, "Try to download from storage server:", fileid)
